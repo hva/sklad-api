@@ -19,7 +19,6 @@
     <IISExpressAnonymousAuthentication />
     <IISExpressWindowsAuthentication />
     <IISExpressUseClassicPipelineMode />
-    <SilverlightApplicationList>{ACA10940-D0C4-44DC-8012-703E69F58422}|..\Warehouse.Silverlight\Warehouse.Silverlight.csproj|ClientBin|False</SilverlightApplicationList>
     <NuGetPackageImportStamp>9e34d199</NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
