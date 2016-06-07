@@ -10,7 +10,7 @@ namespace Warehouse.Server.Data
 
         public MongoContext()
         {
-            var connectionString = ConfigurationManager.ConnectionStrings["MongoDB"].ConnectionString;
+            var connectionString = ConfigurationManager.AppSettings["MongoDB"];
             var client = new MongoClient(connectionString);
             var server = client.GetServer();
             database = server.GetDatabase("skill");
