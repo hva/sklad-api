@@ -9,4 +9,10 @@
   <parameter name="APPVEYOR_REPO_COMMIT" description="Build commit" defaultValue="">
     <parameterEntry kind="XmlFile" scope="Web\.config" match="/configuration/appSettings/add[@key='Commit']/@value" />
   </parameter>
+  <parameter name="InstrumentationKey" description="Application Insights key" defaultValue="">
+    <parameterEntry kind="XmlFile" scope="Web\.config" match="/configuration/appSettings/add[@key='InstrumentationKey']/@value" />
+  </parameter>
+  <parameter name="BackupToken" description="Yandex Disk API token" defaultValue="">
+    <parameterEntry kind="XmlFile" scope="Web\.config" match="/configuration/appSettings/add[@key='BackupToken']/@value" />
+  </parameter>
 </parameters>

@@ -1,4 +1,5 @@
 ﻿using AspNet.Identity.MongoDB;
+using FluentScheduler;
 using Microsoft.AspNet.Identity;
 using Microsoft.Owin;
 using Microsoft.Owin.Security.DataProtection;
@@ -6,6 +7,7 @@ using Owin;
 using Warehouse.Server;
 using Warehouse.Server.Identity;
 using Microsoft.Practices.Unity;
+using Warehouse.Server.Jobs;
 using Warehouse.Server.Logger;
 
 [assembly: OwinStartup(typeof(Startup))]
@@ -28,6 +30,9 @@ namespace Warehouse.Server
             container.RegisterType<ApplicationUserManager>(new HierarchicalLifetimeManager());
             container.RegisterInstance(app.GetDataProtectionProvider(), new HierarchicalLifetimeManager());
             container.RegisterType<ILogger, TelemetryLogger>(new HierarchicalLifetimeManager());
+
+            JobManager.JobFactory = new JobFactory(container);
+            JobManager.Initialize(new BackupRegistry());
 
             var provider = container.Resolve<ApplicationOAuthProvider>();
             app.ConfigureAuth(provider);

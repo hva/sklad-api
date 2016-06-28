@@ -2,6 +2,7 @@
 {
     public interface ILogger
     {
-        void TrackTrace(string message);
+        void Error(string message);
+        void Info(string message);
     }
 }

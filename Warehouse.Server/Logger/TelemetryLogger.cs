@@ -1,5 +1,6 @@
 ﻿using System.Configuration;
 using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.DataContracts;
 
 namespace Warehouse.Server.Logger
 {
@@ -10,12 +11,20 @@ namespace Warehouse.Server.Logger
         public TelemetryLogger()
         {
             var instrumentationKey = ConfigurationManager.AppSettings["InstrumentationKey"];
-            telemetry = new TelemetryClient { InstrumentationKey = instrumentationKey };
+            telemetry = new TelemetryClient
+            {
+                InstrumentationKey = instrumentationKey
+            };
         }
 
-        public void TrackTrace(string message)
+        public void Error(string message)
         {
-            telemetry.TrackTrace(message);
+            telemetry.TrackTrace(message, SeverityLevel.Error);
+        }
+
+        public void Info(string message)
+        {
+            telemetry.TrackTrace(message, SeverityLevel.Information);
         }
     }
 }
