@@ -6,6 +6,7 @@ using Owin;
 using Warehouse.Server;
 using Warehouse.Server.Identity;
 using Microsoft.Practices.Unity;
+using Warehouse.Server.Logger;
 
 [assembly: OwinStartup(typeof(Startup))]
 namespace Warehouse.Server
@@ -26,6 +27,7 @@ namespace Warehouse.Server
             container.RegisterType<IdentityContext, ApplicationIdentityContext>(new HierarchicalLifetimeManager());
             container.RegisterType<ApplicationUserManager>(new HierarchicalLifetimeManager());
             container.RegisterInstance(app.GetDataProtectionProvider(), new HierarchicalLifetimeManager());
+            container.RegisterType<ILogger, TelemetryLogger>(new HierarchicalLifetimeManager());
 
             var provider = container.Resolve<ApplicationOAuthProvider>();
             app.ConfigureAuth(provider);
