@@ -6,8 +6,7 @@ namespace Warehouse.Server.Jobs
     {
         public BackupRegistry()
         {
-            //Schedule<BackupJob>().ToRunEvery(1).Days().At(18, 47).WeekdaysOnly();
-            Schedule<BackupJob>().ToRunEvery(30).Minutes();
+            Schedule<BackupJob>().ToRunEvery(1).Days().At(21, 0).WeekdaysOnly();
         }
     }
 }
