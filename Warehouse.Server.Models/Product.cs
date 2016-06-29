@@ -19,10 +19,10 @@ namespace Warehouse.Server.Models
         public double K { get; set; }
 
         [BsonElement("price_opt")]
-        public long PriceOpt { get; set; }
+        public double PriceOpt { get; set; }
 
         [BsonElement("price_rozn")]
-        public long PriceRozn { get; set; }
+        public double PriceRozn { get; set; }
 
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         [BsonElement("weight")]
@@ -45,7 +45,7 @@ namespace Warehouse.Server.Models
 
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         [BsonElement("price_income")]
-        public long PriceIcome { get; set; }
+        public double PriceIcome { get; set; }
 
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
         [BsonElement("is_sheet")]
