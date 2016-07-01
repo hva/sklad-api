@@ -7,13 +7,13 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Mime;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Http;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver.Builders;
 using MongoDB.Driver.GridFS;
 using Warehouse.Server.Data;
+using Warehouse.Server.Logger;
 using Warehouse.Server.Models;
 
 namespace Warehouse.Server.Controllers
@@ -22,10 +22,12 @@ namespace Warehouse.Server.Controllers
     public class FilesController : ApiController
     {
         private readonly IMongoContext context;
+        private readonly ILogger logger;
 
-        public FilesController(IMongoContext context)
+        public FilesController(IMongoContext context, ILogger logger)
         {
             this.context = context;
+            this.logger = logger;
         }
 
         public HttpResponseMessage Get()
@@ -72,7 +74,7 @@ namespace Warehouse.Server.Controllers
                 throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
             }
 
-            var root = HttpContext.Current.Server.MapPath("~/App_Data/uploads");
+            var root = Path.Combine(Path.GetTempPath(), "skill-uploads");
 
             if (!Directory.Exists(root))
             {
@@ -93,6 +95,8 @@ namespace Warehouse.Server.Controllers
                 var fileId = Upload(file, remoteFileName, contentType);
 
                 File.Delete(file);
+
+                logger.Info("file uploaded: " + file);
 
                 return new HttpResponseMessage(HttpStatusCode.Created)
                 {
