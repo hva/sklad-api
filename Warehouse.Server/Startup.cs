@@ -1,5 +1,4 @@
-﻿using System.Configuration;
-using AspNet.Identity.MongoDB;
+﻿using AspNet.Identity.MongoDB;
 using FluentScheduler;
 using Microsoft.AspNet.Identity;
 using Microsoft.Owin;
@@ -32,11 +31,8 @@ namespace Warehouse.Server
             container.RegisterInstance(app.GetDataProtectionProvider(), new HierarchicalLifetimeManager());
             container.RegisterType<ILogger, TelemetryLogger>(new HierarchicalLifetimeManager());
 
-            if (!string.IsNullOrWhiteSpace(ConfigurationManager.AppSettings["IsBackupEnabled"]))
-            {
-                JobManager.JobFactory = new JobFactory(container);
-                JobManager.Initialize(new BackupRegistry());
-            }
+            JobManager.JobFactory = new JobFactory(container);
+            JobManager.Initialize(container.Resolve<BackupRegistry>());
 
             var provider = container.Resolve<ApplicationOAuthProvider>();
             app.ConfigureAuth(provider);
