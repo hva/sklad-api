@@ -1,23 +1,26 @@
-﻿printjson(
-    db.products.update(
-        { price_opt: { $not: { $type: 1 } } },
-        { $mul: { price_opt: 0.0001 } },
-        { multi: true }
-    )
-)
+﻿function convert(x, key) {
+	var price = x[key]
+	if (price instanceof NumberLong || price instanceof NumberInt) {
+		var price2 = Math.ceil(price / 1000) / 10
+		x[key] = price2
+		print([key, price, '-> ' + price2].join('\t'))
+		return 1
+	}
+	return 0
+}
 
-printjson(
-    db.products.update(
-        { price_rozn: { $not: { $type: 1 } } },
-        { $mul: { price_rozn: 0.0001 } },
-        { multi: true }
-    )
-)
+// demoninates last 4 digits of price fields with ceiling up to 10 cents
+// example: 7614071 -> 761.5
+function update(x) {
+	var isModified =
+		convert(x, 'price_opt') |
+		convert(x, 'price_rozn') |
+		convert(x, 'price_income')
+	if (isModified) {
+		var res = db.products.save(x)
+		printjson(res)
+		print('\n')
+	}
+}
 
-printjson(
-    res = db.products.update(
-        { price_income: { $not: { $type: 1 } } },
-        { $mul: { price_income: 0.0001 } },
-        { multi: true }
-    )
-)
+db.products.find().forEach(update)
