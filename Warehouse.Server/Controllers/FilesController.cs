@@ -19,6 +19,7 @@ using Warehouse.Server.Models;
 namespace Warehouse.Server.Controllers
 {
     [Authorize]
+    [RoutePrefix("api/files")]
     public class FilesController : ApiController
     {
         private readonly IMongoContext context;
@@ -30,7 +31,8 @@ namespace Warehouse.Server.Controllers
             this.logger = logger;
         }
 
-        public HttpResponseMessage Get()
+        [Route]
+        public IHttpActionResult Get()
         {
             var files = context.Database.GridFS.FindAll();
             var data = files.Select(x => new FileDescription
@@ -42,36 +44,46 @@ namespace Warehouse.Server.Controllers
                 Metadata = (x.Metadata != null) ? BsonSerializer.Deserialize<FileMetadata>(x.Metadata) : null
             });
 
-            return Request.CreateResponse(HttpStatusCode.OK, data);
+            logger.TrackRequest(Request, true);
+            return Ok(data);
         }
 
         [AllowAnonymous]
-        public HttpResponseMessage Get(string id)
+        [HttpGet]
+        [Route("{id}")]
+        public IHttpActionResult Get(string id)
         {
             ObjectId fileId;
             if (!ObjectId.TryParse(id, out fileId))
             {
-                return Request.CreateResponse(HttpStatusCode.BadRequest);
+                logger.TrackRequest(Request, false);
+                return BadRequest();
             }
 
             var file = context.Database.GridFS.FindOneById(fileId);
             if (file == null)
             {
-                return Request.CreateResponse(HttpStatusCode.NotFound);
+                logger.TrackRequest(Request, false);
+                return NotFound();
             }
 
             var stream = file.OpenRead();
-            var resp = Request.CreateResponse();
+            var resp = Request.CreateResponse(HttpStatusCode.OK);
             resp.Content = new StreamContent(stream);
             resp.Content.Headers.ContentType = new MediaTypeHeaderValue(MediaTypeNames.Image.Jpeg);
-            return resp;
+
+            logger.TrackRequest(Request, true);
+            return ResponseMessage(resp);
         }
 
-        public async Task<HttpResponseMessage> Post()
+        [HttpPost]
+        [Route]
+        public async Task<IHttpActionResult> Post()
         {
             if (!Request.Content.IsMimeMultipartContent())
             {
-                throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
+                logger.TrackRequest(Request, false);
+                return StatusCode(HttpStatusCode.UnsupportedMediaType);
             }
 
             var root = Path.Combine(Path.GetTempPath(), "skill-uploads");
@@ -98,20 +110,25 @@ namespace Warehouse.Server.Controllers
 
                 logger.Info("file uploaded: " + file);
 
-                return new HttpResponseMessage(HttpStatusCode.Created)
-                {
-                    Content = new StringContent(fileId)
-                };
+                var resp = Request.CreateResponse(HttpStatusCode.Created);
+                resp.Content = new StringContent(fileId);
+
+                logger.TrackRequest(Request, true);
+                return ResponseMessage(resp);
             }
-            return Request.CreateResponse(HttpStatusCode.BadRequest);
+
+            logger.TrackRequest(Request, false);
+            return BadRequest();
         }
 
         [HttpDelete]
-        public HttpResponseMessage Delete(string ids)
+        [Route]
+        public IHttpActionResult Delete(string ids)
         {
             if (ids == null)
             {
-                return Request.CreateResponse(HttpStatusCode.BadRequest);
+                logger.TrackRequest(Request, false);
+                return BadRequest();
             }
 
             var arr = ids.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
@@ -121,22 +138,26 @@ namespace Warehouse.Server.Controllers
                 var query = Query.In("_id", new BsonArray(objectIds));
                 context.Database.GridFS.Delete(query);
             }
-            return Request.CreateResponse(HttpStatusCode.OK);
+
+            logger.TrackRequest(Request, true);
+            return Ok();
         }
 
-        [Route("api/files/{id}/products")]
         [HttpPost]
-        public HttpResponseMessage AttachProducts(string id, string[] productIds)
+        [Route("{id}/products")]
+        public IHttpActionResult AttachProducts(string id, string[] productIds)
         {
             if (productIds == null)
             {
-                return Request.CreateResponse(HttpStatusCode.BadRequest);
+                logger.TrackRequest(Request, false);
+                return BadRequest();
             }
 
             var file = context.Database.GridFS.FindOneById(new ObjectId(id));
             if (file == null)
             {
-                return Request.CreateResponse(HttpStatusCode.NotFound);
+                logger.TrackRequest(Request, false);
+                return NotFound();
             }
 
             var ids = productIds.Select(x => new ObjectId(x));
@@ -144,7 +165,8 @@ namespace Warehouse.Server.Controllers
 
             context.Database.GridFS.SetMetadata(file, meta.ToBsonDocument());
 
-            return Request.CreateResponse(HttpStatusCode.Created);
+            logger.TrackRequest(Request, true);
+            return Created(string.Empty, string.Empty);
         }
 
         private string Upload(string file, string remoteFileName, string contentType)

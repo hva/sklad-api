@@ -1,4 +1,5 @@
-﻿using AspNet.Identity.MongoDB;
+﻿using System.Configuration;
+using AspNet.Identity.MongoDB;
 using FluentScheduler;
 using Microsoft.AspNet.Identity;
 using Microsoft.Owin;
@@ -29,7 +30,9 @@ namespace Warehouse.Server
             container.RegisterType<IdentityContext, ApplicationIdentityContext>(new HierarchicalLifetimeManager());
             container.RegisterType<ApplicationUserManager>(new HierarchicalLifetimeManager());
             container.RegisterInstance(app.GetDataProtectionProvider(), new HierarchicalLifetimeManager());
-            container.RegisterType<ILogger, TelemetryLogger>(new HierarchicalLifetimeManager());
+
+            var instrumentationKey = ConfigurationManager.AppSettings["InstrumentationKey"];
+            container.RegisterType<ILogger, TelemetryLogger>(new HierarchicalLifetimeManager(), new InjectionConstructor(instrumentationKey));
 
             JobManager.JobFactory = new JobFactory(container);
             JobManager.Initialize(container.Resolve<BackupRegistry>());

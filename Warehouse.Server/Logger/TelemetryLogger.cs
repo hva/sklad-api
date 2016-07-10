@@ -1,4 +1,4 @@
-﻿using System.Configuration;
+﻿using System.Net.Http;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 
@@ -8,13 +8,9 @@ namespace Warehouse.Server.Logger
     {
         private readonly TelemetryClient telemetry;
 
-        public TelemetryLogger()
+        public TelemetryLogger(string instrumentationKey)
         {
-            var instrumentationKey = ConfigurationManager.AppSettings["InstrumentationKey"];
-            telemetry = new TelemetryClient
-            {
-                InstrumentationKey = instrumentationKey
-            };
+            telemetry = new TelemetryClient { InstrumentationKey = instrumentationKey };
         }
 
         public void Error(string message)
@@ -25,6 +21,18 @@ namespace Warehouse.Server.Logger
         public void Info(string message)
         {
             telemetry.TrackTrace(message, SeverityLevel.Information);
+        }
+
+        public void TrackRequest(HttpRequestMessage r, bool ok)
+        {
+            var tr = new RequestTelemetry
+            {
+                Name = r.RequestUri.AbsolutePath,
+                HttpMethod = r.Method.Method,
+                Success = ok,
+            };
+
+            telemetry.TrackRequest(tr);
         }
     }
 }

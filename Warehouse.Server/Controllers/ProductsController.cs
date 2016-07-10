@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -7,81 +6,73 @@ using System.Web.Http;
 using MongoDB.Bson;
 using MongoDB.Driver.Builders;
 using Warehouse.Server.Data;
+using Warehouse.Server.Logger;
 using Warehouse.Server.Models;
 
 namespace Warehouse.Server.Controllers
 {
     [Authorize]
+    [RoutePrefix("api/products")]
     public class ProductsController : ApiController
     {
         private readonly IMongoContext context;
+        private readonly ILogger logger;
 
-        public ProductsController(IMongoContext context)
+        public ProductsController(IMongoContext context, ILogger logger)
         {
             this.context = context;
+            this.logger = logger;
         }
 
-        public IEnumerable<Product> Get()
+        [HttpGet]
+        [Route]
+        public IHttpActionResult Get()
         {
-            return context.Products.FindAll();
+            logger.TrackRequest(Request, true);
+            return Ok(context.Products.FindAll());
         }
 
-        public HttpResponseMessage Get(string id)
+        [HttpGet]
+        [Route("{id}")]
+        public IHttpActionResult Get(string id)
         {
             var data = context.Products.FindOneById(new ObjectId(id));
+
+            logger.TrackRequest(Request, data != null);
+
             if (data != null)
             {
-                return Request.CreateResponse(HttpStatusCode.OK, data);
+                return Ok(data);
             }
-            return Request.CreateResponse(HttpStatusCode.NotFound);
+            return NotFound();
         }
 
-        [Route("api/products/getMany")]
         [HttpPost]
-        public HttpResponseMessage GetMany(string[] ids)
+        [Route("getMany")]
+        public IHttpActionResult GetMany(string[] ids)
         {
             if (ids == null)
             {
-                return Request.CreateResponse(HttpStatusCode.BadRequest);
+                logger.TrackRequest(Request, false);
+                return BadRequest();
             }
 
             var objectIds = ids.Select(x => new ObjectId(x));
             var query = Query<Product>.In(x => x.Id, objectIds);
             var data = context.Products.Find(query);
-            if (data != null)
+            if (data == null)
             {
-                return Request.CreateResponse(HttpStatusCode.OK, data);
+                logger.TrackRequest(Request, false);
+                return InternalServerError();
             }
 
-            return Request.CreateResponse(HttpStatusCode.InternalServerError);
+            logger.TrackRequest(Request, true);
+            return Ok(data);
         }
 
-        //[Route("api/products/getNames")]
-        //[HttpPost]
-        //public HttpResponseMessage GetNames(string[] ids)
-        //{
-        //    if (ids == null)
-        //    {
-        //        return Request.CreateResponse(HttpStatusCode.BadRequest);
-        //    }
-
-        //    var objectIds = ids.Select(x => new ObjectId(x));
-        //    var query = Query<Product>.In(x => x.Id, objectIds);
-        //    var data = context.Products
-        //        .Find(query)
-        //        .SetFields(Fields<Product>.Include(x => x.Name, x => x.Size));
-        //    if (data != null)
-        //    {
-        //        var names = data.Select(x => new ProductName { Id = x.Id, Name = string.Concat(x.Name, " ", x.Size) });
-        //        return Request.CreateResponse(HttpStatusCode.OK, names);
-        //    }
-
-        //    return Request.CreateResponse(HttpStatusCode.InternalServerError);
-        //}
-
-        [Route("api/products/getNames")]
         [HttpGet]
-        public HttpResponseMessage GetNames()
+        [Route("getNames")]
+        public IHttpActionResult GetNames()
         {
             var data = context.Products
                 .FindAll()
@@ -89,13 +80,25 @@ namespace Warehouse.Server.Controllers
             if (data != null)
             {
                 var names = data.Select(x => new ProductName { Id = x.Id, Name = string.Concat(x.Name, " ", x.Size) });
-                return Request.CreateResponse(HttpStatusCode.OK, names);
+                logger.TrackRequest(Request, true);
+                return Ok(names);
             }
 
-            return Request.CreateResponse(HttpStatusCode.InternalServerError);
+            logger.TrackRequest(Request, false);
+            return InternalServerError();
         }
 
-        public HttpResponseMessage Put(string id, [FromBody] Product product)
+        [HttpPut]
+        [Route("{id}")]
+        public IHttpActionResult PutDeprecated()
+        {
+            logger.TrackRequest(Request, false);
+            return StatusCode(HttpStatusCode.Gone);
+        }
+
+        [HttpPut]
+        [Route("~/api/v2/products/{id}")]
+        public IHttpActionResult Put(string id, [FromBody] Product product)
         {
             var query = Query<Product>.EQ(p => p.Id, new ObjectId(id));
             var update = Update<Product>
@@ -113,48 +116,74 @@ namespace Warehouse.Server.Controllers
                 .Set(p => p.Firma, product.Firma)
             ;
             var res = context.Products.Update(query, update);
+
+            logger.TrackRequest(Request, res.Ok);
+
             var code = res.Ok ? HttpStatusCode.OK : HttpStatusCode.BadRequest;
-            return Request.CreateResponse(code);
+            return StatusCode(code);
         }
 
-        public HttpResponseMessage Post([FromBody] Product product)
+        [HttpPost]
+        [Route]
+        public IHttpActionResult Post([FromBody] Product product)
         {
             var res = context.Products.Save(product);
+
+            logger.TrackRequest(Request, res.Ok);
+
             if (res.Ok)
             {
-                return new HttpResponseMessage(HttpStatusCode.Created)
+                var message = new HttpResponseMessage(HttpStatusCode.Created)
                 {
                     Content = new StringContent(product.Id.ToString())
                 };
+                return ResponseMessage(message);
             }
-            return Request.CreateResponse(HttpStatusCode.InternalServerError);
+            return InternalServerError();
         }
 
-        public HttpResponseMessage Delete(string ids)
+        [HttpDelete]
+        [Route]
+        public IHttpActionResult Delete(string ids)
         {
             if (ids == null)
             {
-                return Request.CreateResponse(HttpStatusCode.BadRequest);
+                logger.TrackRequest(Request, false);
+                return BadRequest();
             }
 
             var arr = ids.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries);
-            if (arr.Length > 0)
+
+            if (arr.Length <= 0)
             {
-                var objectIds = arr.Select(x => new ObjectId(x));
-                var query = Query<Product>.In(x => x.Id, objectIds);
-                var res = context.Products.Remove(query);
-                if (res.Ok)
-                {
-                    return Request.CreateResponse(HttpStatusCode.OK);
-                }
+                logger.TrackRequest(Request, false);
+                return BadRequest();
             }
 
-            return Request.CreateResponse(HttpStatusCode.InternalServerError);
+            var objectIds = arr.Select(x => new ObjectId(x));
+            var query = Query<Product>.In(x => x.Id, objectIds);
+            var res = context.Products.Remove(query);
+            if (res.Ok)
+            {
+                logger.TrackRequest(Request, true);
+                return Ok();
+            }
+
+            logger.TrackRequest(Request, false);
+            return InternalServerError();
         }
 
-        [Route("api/products/updatePrice")]
         [HttpPut]
-        public HttpResponseMessage UpdatePrice(ProductPriceUpdate[] items)
+        [Route("updatePrice")]
+        public IHttpActionResult UpdatePriceDeprecated()
+        {
+            logger.TrackRequest(Request, false);
+            return StatusCode(HttpStatusCode.Gone);
+        }
+
+        [HttpPut]
+        [Route("~/api/v2/products/updatePrice")]
+        public IHttpActionResult UpdatePrice(ProductPriceUpdate[] items)
         {
             var bulk = context.Products.InitializeUnorderedBulkOperation();
             foreach (var x in items)
@@ -166,12 +195,14 @@ namespace Warehouse.Server.Controllers
                 bulk.Find(query).UpdateOne(update);
             }
             bulk.Execute();
-            return Request.CreateResponse(HttpStatusCode.OK);
+
+            logger.TrackRequest(Request, true);
+            return Ok();
         }
 
-        [Route("api/products/{id}/files")]
         [HttpGet]
-        public HttpResponseMessage GetFiles(string id)
+        [Route("{id}/files")]
+        public IHttpActionResult GetFiles(string id)
         {
             var productId = new ObjectId(id);
             var ids = new[] {productId};
@@ -186,7 +217,8 @@ namespace Warehouse.Server.Controllers
                 UploadDate = x.UploadDate,
             });
 
-            return Request.CreateResponse(HttpStatusCode.OK, data);
+            logger.TrackRequest(Request, true);
+            return Ok(data);
         }
     }
 }
