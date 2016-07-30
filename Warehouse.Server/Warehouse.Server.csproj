@@ -179,6 +179,7 @@
     <Content Include="ClientBin\Warehouse.Silverlight.xap" />
     <Content Include="Global.asax" />
     <Content Include="Migrations\00_denomination.js" />
+    <Content Include="Migrations\01_fix-price-rozn-rounding.js" />
     <Content Include="parameters.xml" />
     <Content Include="Scripts\Silverlight.js" />
     <Content Include="Web.config" />
