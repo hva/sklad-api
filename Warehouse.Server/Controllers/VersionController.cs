@@ -1,4 +1,5 @@
-﻿using System.Configuration;
+﻿using System.Diagnostics;
+using System.Reflection;
 using System.Web.Http;
 
 namespace Warehouse.Server.Controllers
@@ -9,9 +10,14 @@ namespace Warehouse.Server.Controllers
         [Route]
         public IHttpActionResult Get()
         {
-            var version = ConfigurationManager.AppSettings["Version"];
-            var commit = ConfigurationManager.AppSettings["Commit"];
-            var data = new { version, commit };
+            var assembly = Assembly.GetExecutingAssembly();
+            var info = FileVersionInfo.GetVersionInfo(assembly.Location);
+            var data = new
+            {
+                version = info.FileVersion,
+                commit = info.ProductVersion,
+            };
+
             return Ok(data);
         }
     }

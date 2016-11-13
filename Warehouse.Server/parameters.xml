@@ -3,12 +3,6 @@
   <parameter name="MongoDB" description="MongoDB connection string" defaultValue="mongodb://localhost:27017/skill">
     <parameterEntry kind="XmlFile" scope="Web\.config" match="/configuration/appSettings/add[@key='MongoDB']/@value" />
   </parameter>
-  <parameter name="APPVEYOR_BUILD_VERSION" description="App version" defaultValue="">
-    <parameterEntry kind="XmlFile" scope="Web\.config" match="/configuration/appSettings/add[@key='Version']/@value" />
-  </parameter>
-  <parameter name="APPVEYOR_REPO_COMMIT" description="Build commit" defaultValue="">
-    <parameterEntry kind="XmlFile" scope="Web\.config" match="/configuration/appSettings/add[@key='Commit']/@value" />
-  </parameter>
   <parameter name="IsBackupEnabled" description="Enable backup flag" defaultValue="">
     <parameterEntry kind="XmlFile" scope="Web\.config" match="/configuration/appSettings/add[@key='IsBackupEnabled']/@value" />
   </parameter>
