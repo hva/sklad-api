@@ -6,7 +6,6 @@ using System.Web.Http;
 using MongoDB.Bson;
 using MongoDB.Driver.Builders;
 using Warehouse.Server.Data;
-using Warehouse.Server.Logger;
 using Warehouse.Server.Models;
 
 namespace Warehouse.Server.Controllers
@@ -16,19 +15,16 @@ namespace Warehouse.Server.Controllers
     public class ProductsController : ApiController
     {
         private readonly IMongoContext context;
-        private readonly ILogger logger;
 
-        public ProductsController(IMongoContext context, ILogger logger)
+        public ProductsController(IMongoContext context)
         {
             this.context = context;
-            this.logger = logger;
         }
 
         [HttpGet]
         [Route]
         public IHttpActionResult Get()
         {
-            logger.TrackRequest(Request, true);
             return Ok(context.Products.FindAll());
         }
 
@@ -37,9 +33,6 @@ namespace Warehouse.Server.Controllers
         public IHttpActionResult Get(string id)
         {
             var data = context.Products.FindOneById(new ObjectId(id));
-
-            logger.TrackRequest(Request, data != null);
-
             if (data != null)
             {
                 return Ok(data);
@@ -53,7 +46,6 @@ namespace Warehouse.Server.Controllers
         {
             if (ids == null)
             {
-                logger.TrackRequest(Request, false);
                 return BadRequest();
             }
 
@@ -62,11 +54,9 @@ namespace Warehouse.Server.Controllers
             var data = context.Products.Find(query);
             if (data == null)
             {
-                logger.TrackRequest(Request, false);
                 return InternalServerError();
             }
 
-            logger.TrackRequest(Request, true);
             return Ok(data);
         }
 
@@ -80,11 +70,9 @@ namespace Warehouse.Server.Controllers
             if (data != null)
             {
                 var names = data.Select(x => new ProductName { Id = x.Id, Name = string.Concat(x.Name, " ", x.Size) });
-                logger.TrackRequest(Request, true);
                 return Ok(names);
             }
 
-            logger.TrackRequest(Request, false);
             return InternalServerError();
         }
 
@@ -92,7 +80,6 @@ namespace Warehouse.Server.Controllers
         [Route("{id}")]
         public IHttpActionResult PutDeprecated()
         {
-            logger.TrackRequest(Request, false);
             return StatusCode(HttpStatusCode.Gone);
         }
 
@@ -117,8 +104,6 @@ namespace Warehouse.Server.Controllers
             ;
             var res = context.Products.Update(query, update);
 
-            logger.TrackRequest(Request, res.Ok);
-
             var code = res.Ok ? HttpStatusCode.OK : HttpStatusCode.BadRequest;
             return StatusCode(code);
         }
@@ -128,8 +113,6 @@ namespace Warehouse.Server.Controllers
         public IHttpActionResult Post([FromBody] Product product)
         {
             var res = context.Products.Save(product);
-
-            logger.TrackRequest(Request, res.Ok);
 
             if (res.Ok)
             {
@@ -148,7 +131,6 @@ namespace Warehouse.Server.Controllers
         {
             if (ids == null)
             {
-                logger.TrackRequest(Request, false);
                 return BadRequest();
             }
 
@@ -156,7 +138,6 @@ namespace Warehouse.Server.Controllers
 
             if (arr.Length <= 0)
             {
-                logger.TrackRequest(Request, false);
                 return BadRequest();
             }
 
@@ -165,11 +146,9 @@ namespace Warehouse.Server.Controllers
             var res = context.Products.Remove(query);
             if (res.Ok)
             {
-                logger.TrackRequest(Request, true);
                 return Ok();
             }
 
-            logger.TrackRequest(Request, false);
             return InternalServerError();
         }
 
@@ -177,7 +156,6 @@ namespace Warehouse.Server.Controllers
         [Route("updatePrice")]
         public IHttpActionResult UpdatePriceDeprecated()
         {
-            logger.TrackRequest(Request, false);
             return StatusCode(HttpStatusCode.Gone);
         }
 
@@ -196,7 +174,6 @@ namespace Warehouse.Server.Controllers
             }
             bulk.Execute();
 
-            logger.TrackRequest(Request, true);
             return Ok();
         }
 
@@ -217,7 +194,6 @@ namespace Warehouse.Server.Controllers
                 UploadDate = x.UploadDate,
             });
 
-            logger.TrackRequest(Request, true);
             return Ok(data);
         }
     }

@@ -44,7 +44,6 @@ namespace Warehouse.Server.Controllers
                 Metadata = (x.Metadata != null) ? BsonSerializer.Deserialize<FileMetadata>(x.Metadata) : null
             });
 
-            logger.TrackRequest(Request, true);
             return Ok(data);
         }
 
@@ -56,14 +55,12 @@ namespace Warehouse.Server.Controllers
             ObjectId fileId;
             if (!ObjectId.TryParse(id, out fileId))
             {
-                logger.TrackRequest(Request, false);
                 return BadRequest();
             }
 
             var file = context.Database.GridFS.FindOneById(fileId);
             if (file == null)
             {
-                logger.TrackRequest(Request, false);
                 return NotFound();
             }
 
@@ -72,7 +69,6 @@ namespace Warehouse.Server.Controllers
             resp.Content = new StreamContent(stream);
             resp.Content.Headers.ContentType = new MediaTypeHeaderValue(MediaTypeNames.Image.Jpeg);
 
-            logger.TrackRequest(Request, true);
             return ResponseMessage(resp);
         }
 
@@ -82,7 +78,6 @@ namespace Warehouse.Server.Controllers
         {
             if (!Request.Content.IsMimeMultipartContent())
             {
-                logger.TrackRequest(Request, false);
                 return StatusCode(HttpStatusCode.UnsupportedMediaType);
             }
 
@@ -113,11 +108,9 @@ namespace Warehouse.Server.Controllers
                 var resp = Request.CreateResponse(HttpStatusCode.Created);
                 resp.Content = new StringContent(fileId);
 
-                logger.TrackRequest(Request, true);
                 return ResponseMessage(resp);
             }
 
-            logger.TrackRequest(Request, false);
             return BadRequest();
         }
 
@@ -127,7 +120,6 @@ namespace Warehouse.Server.Controllers
         {
             if (ids == null)
             {
-                logger.TrackRequest(Request, false);
                 return BadRequest();
             }
 
@@ -139,7 +131,6 @@ namespace Warehouse.Server.Controllers
                 context.Database.GridFS.Delete(query);
             }
 
-            logger.TrackRequest(Request, true);
             return Ok();
         }
 
@@ -149,14 +140,12 @@ namespace Warehouse.Server.Controllers
         {
             if (productIds == null)
             {
-                logger.TrackRequest(Request, false);
                 return BadRequest();
             }
 
             var file = context.Database.GridFS.FindOneById(new ObjectId(id));
             if (file == null)
             {
-                logger.TrackRequest(Request, false);
                 return NotFound();
             }
 
@@ -165,7 +154,6 @@ namespace Warehouse.Server.Controllers
 
             context.Database.GridFS.SetMetadata(file, meta.ToBsonDocument());
 
-            logger.TrackRequest(Request, true);
             return Created(string.Empty, string.Empty);
         }
 
