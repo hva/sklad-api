@@ -3,14 +3,11 @@ using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Threading.Tasks;
 using System.Web.Hosting;
 using FluentScheduler;
+using Microsoft.Azure;
+using Microsoft.WindowsAzure.Storage;
 using MongoDB.Driver;
-using Newtonsoft.Json.Linq;
 using Warehouse.Server.Logger;
 
 namespace Warehouse.Server.Jobs
@@ -57,43 +54,33 @@ namespace Warehouse.Server.Jobs
         {
             try
             {
-                var task = ExecuteAsync();
-                task.Wait();
-            }
-            catch (AggregateException e)
-            {
-                foreach (var inner in e.Flatten().InnerExceptions)
-                {
-                    logger.Error(inner.Message);
-                }
+                var now = DateTime.UtcNow;
+                var dbName = GetDatabaseName();
+                logger.Info("backup database " + dbName);
+
+                var workingDir = Path.Combine(Path.GetTempPath(), "skill-backup_" + dbName);
+                logger.Info("backup working dir " + workingDir);
+
+                Dump(workingDir, dbName);
+                logger.Info("backup execute dump command");
+
+                var zipFile = string.Format("{0}_{1:yyyyMMdd_HHmm}.zip", dbName, now);
+                Zip(workingDir, zipFile);
+                logger.Info("backup zip file " + zipFile);
+
+                const string containerName = "skill-backup";
+                UploadBlob(workingDir, zipFile, containerName);
+                logger.Info("backup upload blob to container " + containerName);
+
+                Cleanup(workingDir, zipFile);
+                logger.Info("backup cleanup");
+
+                logger.Info("backup finished");
             }
             catch (Exception e)
             {
                 logger.Error(e.Message);
             }
-        }
-
-        public async Task ExecuteAsync()
-        {
-            var now = DateTime.UtcNow;
-            var dbName = GetDatabaseName();
-            var workingDir = Path.Combine(Path.GetTempPath(), "skill-backup_" + dbName);
-
-            Dump(workingDir, dbName);
-
-            var zipFile = string.Format("{0}_{1:yyyyMMdd_HHmm}.zip", dbName, now);
-            Zip(workingDir, zipFile);
-
-            var uploadPath = string.Format("skill-backup/{0:yyyy_MM}", now);
-            var token = GetToken();
-            await CreateUploadPathAsync(uploadPath, token);
-
-            var uploadLink = await GetUploadLinkAsync(uploadPath, token, zipFile);
-            await UploadFileAsync(workingDir, zipFile, uploadLink);
-
-            Cleanup(workingDir, zipFile);
-
-            logger.Info("backup created: " + zipFile);
         }
 
         private static string GetDatabaseName()
@@ -141,80 +128,18 @@ namespace Warehouse.Server.Jobs
             ZipFile.CreateFromDirectory(dumpPath, zipFullPath);
         }
 
-        private static string GetToken()
+        private static void UploadBlob(string workingDir, string zipFile, string containerName)
         {
-            var token = ConfigurationManager.AppSettings["BackupToken"];
-            if (string.IsNullOrEmpty(token))
-            {
-                throw new Exception("token is empty");
-            }
-            return token;
-        }
-
-        private static async Task CreateUploadPathAsync(string uploadPath, string token)
-        {
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("OAuth", token);
-                client.BaseAddress = new Uri("https://cloud-api.yandex.net:443");
-
-                var uriString = string.Format("/v1/disk/resources/?path={0}", WebUtility.UrlEncode(uploadPath));
-
-                var resp = await client.GetAsync(uriString);
-                if (resp.StatusCode == HttpStatusCode.NotFound)
-                {
-                    var message = new HttpRequestMessage(HttpMethod.Put, uriString);
-                    var resp2 = await client.SendAsync(message);
-                    if (resp2.StatusCode != HttpStatusCode.Created)
-                    {
-                        throw new Exception("can't create upload path");
-                    }
-                }
-            }
-        }
-
-        private static async Task<string> GetUploadLinkAsync(string uploadPath, string token, string zipFile)
-        {
-            using (var client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("OAuth", token);
-                client.BaseAddress = new Uri("https://cloud-api.yandex.net:443");
-
-                var path = string.Concat(uploadPath, "/", zipFile);
-                var linkUriString = string.Format("/v1/disk/resources/upload?path={0}", WebUtility.UrlEncode(path));
-
-                var resp = await client.GetAsync(linkUriString);
-                string link = null;
-                if (resp.StatusCode == HttpStatusCode.OK)
-                {
-                    var content = await resp.Content.ReadAsStringAsync();
-                    var json = JObject.Parse(content);
-                    link = json["href"].ToString();
-                }
-                if (string.IsNullOrEmpty(link))
-                {
-                    throw new Exception("empty upload link");
-                }
-                return link;
-            }
-        }
-
-        private static async Task UploadFileAsync(string workingDir, string zipFile, string uploadLink)
-        {
-            var timeoutString = ConfigurationManager.AppSettings["BackupUploadTimeout"];
-            var timeout = TimeSpan.Parse(timeoutString);
-
+            var storageAccount = CloudStorageAccount.Parse(
+                CloudConfigurationManager.GetSetting("StorageConnectionString"));
+            var blobClient = storageAccount.CreateCloudBlobClient();
+            var container = blobClient.GetContainerReference(containerName);
+            container.CreateIfNotExists();
+            var blockBlob = container.GetBlockBlobReference(zipFile);
             var zipFullPath = Path.Combine(workingDir, zipFile);
-            using (var client = new HttpClient { Timeout = timeout })
-            using (var stream = File.OpenRead(zipFullPath))
-            using (var content = new StreamContent(stream))
+            using (var fileStream = File.OpenRead(zipFullPath))
             {
-                var resp = await client.PutAsync(uploadLink, content);
-                if (resp.StatusCode != HttpStatusCode.Created)
-                {
-                    var errorContent = await resp.Content.ReadAsStringAsync();
-                    throw new Exception(errorContent);
-                }
+                blockBlob.UploadFromStream(fileStream);
             }
         }
 

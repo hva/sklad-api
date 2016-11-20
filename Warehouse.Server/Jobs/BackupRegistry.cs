@@ -8,6 +8,9 @@ namespace Warehouse.Server.Jobs
     {
         public BackupRegistry(ILogger logger)
         {
+            Schedule<BackupJob>().ToRunNow();
+            return;
+
             if (string.IsNullOrWhiteSpace(ConfigurationManager.AppSettings["IsBackupEnabled"]))
             {
                 logger.Info("backup is disabled");

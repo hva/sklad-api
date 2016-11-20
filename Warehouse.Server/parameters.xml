@@ -6,10 +6,10 @@
   <parameter name="IsBackupEnabled">
     <parameterEntry kind="XmlFile" scope="Web\.config" match="/configuration/appSettings/add[@key='IsBackupEnabled']/@value" />
   </parameter>
-  <parameter name="BackupToken">
-    <parameterEntry kind="XmlFile" scope="Web\.config" match="/configuration/appSettings/add[@key='BackupToken']/@value" />
-  </parameter>
   <parameter name="LogentriesToken">
     <parameterEntry kind="XmlFile" scope="Web\.config" match="/configuration/appSettings/add[@key='LogentriesToken']/@value" />
+  </parameter>
+  <parameter name="StorageConnectionString">
+    <parameterEntry kind="XmlFile" scope="Web\.config" match="/configuration/appSettings/add[@key='StorageConnectionString']/@value" />
   </parameter>
 </parameters>
