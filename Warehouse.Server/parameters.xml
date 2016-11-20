@@ -1,12 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <parameters>
-  <parameter name="MongoDB" description="MongoDB connection string" defaultValue="mongodb://localhost:27017/skill">
+  <parameter name="MongoDB">
     <parameterEntry kind="XmlFile" scope="Web\.config" match="/configuration/appSettings/add[@key='MongoDB']/@value" />
   </parameter>
-  <parameter name="IsBackupEnabled" description="Enable backup flag" defaultValue="">
+  <parameter name="IsBackupEnabled">
     <parameterEntry kind="XmlFile" scope="Web\.config" match="/configuration/appSettings/add[@key='IsBackupEnabled']/@value" />
   </parameter>
-  <parameter name="BackupToken" description="Yandex Disk API token" defaultValue="">
+  <parameter name="BackupToken">
     <parameterEntry kind="XmlFile" scope="Web\.config" match="/configuration/appSettings/add[@key='BackupToken']/@value" />
+  </parameter>
+  <parameter name="LogentriesToken">
+    <parameterEntry kind="XmlFile" scope="Web\.config" match="/configuration/appSettings/add[@key='LogentriesToken']/@value" />
   </parameter>
 </parameters>

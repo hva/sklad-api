@@ -281,7 +281,4 @@
   <Target Name="AfterBuild">
   </Target>
   -->
-  <Target Name="BeforeBuild" Condition="'$(LogentriesToken)' != ''">
-    <XmlPoke XmlInputPath="Web.config" Query="//appSettings/add[@key='LogentriesToken']/@value" Value="$(LogentriesToken)" />
-  </Target>
 </Project>
