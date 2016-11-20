@@ -1,4 +1,5 @@
-﻿using AspNet.Identity.MongoDB;
+﻿using System.Configuration;
+using AspNet.Identity.MongoDB;
 using FluentScheduler;
 using Microsoft.AspNet.Identity;
 using Microsoft.Owin;
@@ -30,7 +31,8 @@ namespace Warehouse.Server
             container.RegisterType<ApplicationUserManager>(new HierarchicalLifetimeManager());
             container.RegisterInstance(app.GetDataProtectionProvider(), new HierarchicalLifetimeManager());
 
-            container.RegisterType<ILogger, FakeLogger>(new HierarchicalLifetimeManager());
+            var token = ConfigurationManager.AppSettings["LogentriesToken"];
+            container.RegisterType<ILogger, LogentriesLogger>(new HierarchicalLifetimeManager(), new InjectionConstructor(token));
 
             JobManager.JobFactory = new JobFactory(container);
             JobManager.Initialize(container.Resolve<BackupRegistry>());
