@@ -14,6 +14,8 @@ namespace Warehouse.Server.Jobs
 {
     public class BackupJob : IJob, IRegisteredObject
     {
+        private const string mongodump = @"C:\Program Files\MongoDB 2.6 Standard\bin\mongodump.exe";
+
         private readonly object _lock = new object();
         private bool _shuttingDown;
         private readonly ILogger logger;
@@ -58,7 +60,8 @@ namespace Warehouse.Server.Jobs
                 var dbName = GetDatabaseName();
                 logger.Info("backup database " + dbName);
 
-                var workingDir = Path.Combine(Path.GetTempPath(), "skill-backup_" + dbName);
+                var workingDir = Path.Combine(Path.GetTempPath(), "sklad-backup", dbName);
+                EnsureDirectoryExists(workingDir);
                 logger.Info("backup working dir " + workingDir);
 
                 Dump(workingDir, dbName);
@@ -68,7 +71,7 @@ namespace Warehouse.Server.Jobs
                 Zip(workingDir, zipFile);
                 logger.Info("backup zip file " + zipFile);
 
-                const string containerName = "skill-backup";
+                const string containerName = "backup";
                 UploadBlob(workingDir, zipFile, containerName);
                 logger.Info("backup upload blob to container " + containerName);
 
@@ -92,10 +95,12 @@ namespace Warehouse.Server.Jobs
 
         private static void Dump(string workingDir, string dbName)
         {
+            var dumpDir = Path.Combine(workingDir, "dump");
+            EnsureDirectoryExists(dumpDir);
             var info = new ProcessStartInfo
             {
-                FileName = "mongodump",
-                Arguments = string.Format("--db {0} --out {1}", dbName, Path.Combine(workingDir, "dump")),
+                FileName = mongodump,
+                Arguments = string.Format("--db {0} --out {1}", dbName, dumpDir),
                 CreateNoWindow = true,
                 UseShellExecute = false,
                 RedirectStandardError = true,
@@ -130,8 +135,8 @@ namespace Warehouse.Server.Jobs
 
         private static void UploadBlob(string workingDir, string zipFile, string containerName)
         {
-            var storageAccount = CloudStorageAccount.Parse(
-                CloudConfigurationManager.GetSetting("StorageConnectionString"));
+            var connectionString = CloudConfigurationManager.GetSetting("StorageConnectionString");
+            var storageAccount = CloudStorageAccount.Parse(connectionString);
             var blobClient = storageAccount.CreateCloudBlobClient();
             var container = blobClient.GetContainerReference(containerName);
             container.CreateIfNotExists();
@@ -155,6 +160,14 @@ namespace Warehouse.Server.Jobs
             if (File.Exists(zipFullPath))
             {
                 File.Delete(zipFullPath);
+            }
+        }
+
+        private static void EnsureDirectoryExists(string path)
+        {
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
             }
         }
     }
