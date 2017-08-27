@@ -1,5 +1,4 @@
-﻿using System;
-using Nancy.Hosting.Self;
+﻿using Topshelf;
 
 namespace SkladApi.Service
 {
@@ -7,12 +6,20 @@ namespace SkladApi.Service
     {
         static void Main(string[] args)
         {
-            using (var host = new NancyHost(new Uri("http://localhost:8000")))
+            HostFactory.Run(x =>
             {
-                host.Start();
-                Console.WriteLine("Running on http://localhost:8000");
-                Console.ReadLine();
-            }
+                x.Service<NancySelfHost>(s =>
+                {
+                    s.ConstructUsing(name => new NancySelfHost());
+                    s.WhenStarted(tc => tc.Start());
+                    s.WhenStopped(tc => tc.Stop());
+                });
+
+                x.RunAsLocalSystem();
+                x.SetDescription("Sklad API Service");
+                x.SetDisplayName("Sklad API");
+                x.SetServiceName("Sklad-API");
+            });
         }
     }
 }
