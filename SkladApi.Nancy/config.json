@@ -1,0 +1,9 @@
+{
+  "db": {
+    "server": "localhost",
+    "port": 3306,
+    "database": "sklad",
+    "user": "root",
+    "password": "root"
+  }
+}
