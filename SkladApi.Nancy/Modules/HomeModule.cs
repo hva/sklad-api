@@ -1,13 +1,16 @@
 ﻿using Nancy;
-using SkladApi.Nancy.Infrastructure;
 
 namespace SkladApi.Nancy.Modules
 {
     public class HomeModule : NancyModule
     {
-        public HomeModule()
+        public HomeModule(Config config)
         {
-            Get["/"] = parameters => Response.AsJson(Config.Load());
+            Get["/"] = parameters => Response.AsJson(new
+            {
+                config.Version,
+                Build = config.Commit
+            });
         }
     }
 }

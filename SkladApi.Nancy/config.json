@@ -5,5 +5,7 @@
     "database": "sklad",
     "user": "root",
     "password": "root"
-  }
+  },
+  "version": "",
+  "commit": ""
 }
