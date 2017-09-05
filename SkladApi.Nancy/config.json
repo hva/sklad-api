@@ -4,7 +4,8 @@
     "port": 3306,
     "database": "sklad",
     "user": "root",
-    "password": "root"
+    "password": "root",
+    "logging": false
   },
   "version": "",
   "commit": ""

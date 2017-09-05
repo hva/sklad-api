@@ -60,6 +60,7 @@
     <Compile Include="Config.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Modules\HomeModule.cs" />
+    <Compile Include="MySqlTraceListener.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

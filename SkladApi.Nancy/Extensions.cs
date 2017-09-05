@@ -13,6 +13,7 @@ namespace SkladApi.Nancy
                 Database = config.Db.Database,
                 UserID = config.Db.User,
                 Password = config.Db.Password,
+                Logging = config.Db.Logging,
             };
 
             return sb.GetConnectionString(true);
