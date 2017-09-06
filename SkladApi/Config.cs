@@ -1,4 +1,4 @@
-﻿namespace SkladApi.Nancy
+﻿namespace SkladApi
 {
     public class Config
     {

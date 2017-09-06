@@ -1,6 +1,6 @@
 ﻿using Nancy;
 
-namespace SkladApi.Nancy.Modules
+namespace SkladApi.Modules
 {
     public class HomeModule : NancyModule
     {

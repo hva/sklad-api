@@ -5,7 +5,7 @@ using Nancy;
 using Nancy.TinyIoc;
 using Newtonsoft.Json;
 
-namespace SkladApi.Nancy
+namespace SkladApi
 {
     public class Bootstrapper : DefaultNancyBootstrapper
     {

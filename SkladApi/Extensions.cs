@@ -1,6 +1,6 @@
 ﻿using MySql.Data.MySqlClient;
 
-namespace SkladApi.Nancy
+namespace SkladApi
 {
     public static class Extensions
     {

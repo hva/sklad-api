@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using MySql.Data.MySqlClient;
 
-namespace SkladApi.Nancy
+namespace SkladApi
 {
     public class MySqlTraceListener : ConsoleTraceListener
     {
