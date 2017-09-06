@@ -1,7 +1,7 @@
 ﻿using System;
 using Nancy.Hosting.Self;
 
-namespace SkladApi.Service
+namespace SkladApi
 {
     public class NancySelfHost
     {
