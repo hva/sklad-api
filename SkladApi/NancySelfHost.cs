@@ -6,13 +6,16 @@ namespace SkladApi
     public class NancySelfHost
     {
         private NancyHost host;
-        private readonly Uri uri = new Uri("http://localhost:8000");
 
         public void Start()
         {
-            host = new NancyHost(uri);
+            var ub = new UriBuilder {
+                Host = "localhost",
+                Port = Config.Load().Port,
+            };
+            host = new NancyHost(ub.Uri);
             host.Start();
-            Console.WriteLine("Running on {0}.", uri);
+            Console.WriteLine("Running on {0}.", ub.Uri);
         }
 
         public void Stop()

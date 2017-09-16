@@ -15,7 +15,6 @@ namespace SkladApi
                 Console.ForegroundColor = ConsoleColor.DarkYellow;
                 base.TraceEvent(eventCache, source, eventType, id, "{2}", args);
                 Console.ForegroundColor = color;
-                return;
             }
 
             //base.TraceEvent(eventCache, source, eventType, id, format, args);
