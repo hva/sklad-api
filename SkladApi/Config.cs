@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
 
 namespace SkladApi
@@ -14,6 +15,21 @@ namespace SkladApi
         {
             var json = File.ReadAllText("config.json");
             return JsonConvert.DeserializeObject<Config>(json);
+        }
+
+        public string GetConnectionString()
+        {
+            var sb = new MySqlConnectionStringBuilder
+            {
+                Server = Db.Server,
+                Port = Db.Port,
+                Database = Db.Database,
+                UserID = Db.User,
+                Password = Db.Password,
+                Logging = Db.Logging,
+            };
+
+            return sb.GetConnectionString(true);
         }
     }
 
