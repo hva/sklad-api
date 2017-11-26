@@ -1,6 +1,6 @@
 ﻿using System;
 using Nancy.Hosting.Self;
-using Sklad.Api.Configuration;
+using Serilog;
 
 namespace Sklad.Api
 {
@@ -8,23 +8,21 @@ namespace Sklad.Api
     {
         private NancyHost host;
 
-        public void Start()
+        public void Start(Uri uri)
         {
-            var config = ConfigLoader.Load();
-            var ub = new UriBuilder
-            {
-                Host = "localhost",
-                Port = config.Port,
-            };
-            host = new NancyHost(ub.Uri);
+            host = new NancyHost(uri);
             host.Start();
-            Console.WriteLine("Running on {0}.", ub.Uri);
+
+            Log.Information("Running on {0}.", uri);
         }
 
         public void Stop()
         {
             host.Stop();
-            Console.WriteLine("Stopped. Good bye!");
+
+            Log.Information("Stopped. Good bye!");
+
+            Log.CloseAndFlush();
         }
     }
 }

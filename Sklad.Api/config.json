@@ -1,13 +1,8 @@
 {
   "port": 8000,
-  "db": {
-    "server": "localhost",
-    "port": 3306,
-    "database": "sklad",
-    "user": "root",
-    "password": "root",
-    "logging": false
-  },
-  "version": "",
-  "commit": ""
+  "service_name": "Sklad-API-Develop",
+  "log": {
+    "host": "",
+    "port": 0
+  }
 }

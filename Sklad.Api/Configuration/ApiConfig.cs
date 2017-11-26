@@ -8,8 +8,20 @@ namespace Sklad.Api.Configuration
         [DataMember(Name = "port")]
         public int Port { get; set; }
 
-        public string Db { get; set; }
-        public string Version { get; set; }
-        public string Commit { get; set; }
+        [DataMember(Name = "service_name")]
+        public string ServiceName { get; set; }
+
+        [DataMember(Name = "log")]
+        public Logging Log { get; set; }
+
+        [DataContract]
+        public class Logging
+        {
+            [DataMember(Name = "host")]
+            public string Host { get; set; }
+
+            [DataMember(Name = "port")]
+            public int Port { get; set; }
+        }
     }
 }
