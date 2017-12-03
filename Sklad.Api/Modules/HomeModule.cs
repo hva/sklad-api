@@ -22,7 +22,7 @@ namespace Sklad.Api.Modules
 
         private static Resp Load()
         {
-            Log.Information("Loading assembly info.");
+            Log.Information("home module: load assembly info");
             var assembly = Assembly.GetExecutingAssembly();
             var info = FileVersionInfo.GetVersionInfo(assembly.Location);
             var commit = info.ProductVersion;
