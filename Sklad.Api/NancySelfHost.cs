@@ -1,4 +1,5 @@
 ﻿using System;
+using Nancy;
 using Nancy.Hosting.Self;
 using Serilog;
 
@@ -10,6 +11,8 @@ namespace Sklad.Api
 
         public void Start(Uri uri)
         {
+            StaticConfiguration.DisableErrorTraces = false;
+
             host = new NancyHost(uri);
             host.Start();
 
