@@ -21,7 +21,6 @@ namespace Sklad.Api
             host.Stop();
 
             Log.Information("Stopped. Good bye!");
-
             Log.CloseAndFlush();
         }
     }

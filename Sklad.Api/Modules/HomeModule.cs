@@ -1,4 +1,6 @@
-﻿using Nancy;
+﻿using System.Diagnostics;
+using System.Reflection;
+using Nancy;
 
 namespace Sklad.Api.Modules
 {
@@ -6,11 +8,16 @@ namespace Sklad.Api.Modules
     {
         public HomeModule()
         {
-            Get["/"] = parameters => Response.AsJson(new
+            Get["/"] = parameters =>
             {
-                Version = "1.0",
-                Commit = "f5bae0a"
-            });
+                var assembly = Assembly.GetExecutingAssembly();
+                var info = FileVersionInfo.GetVersionInfo(assembly.Location);
+                return Response.AsJson(new
+                {
+                    Version = info.FileVersion,
+                    Commit = info.ProductVersion
+                });
+            };
         }
     }
 }
