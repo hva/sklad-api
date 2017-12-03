@@ -3,31 +3,34 @@ using System.Diagnostics;
 using System.Reflection;
 using Nancy;
 using Serilog;
+using Resp = System.Tuple<string,string>;
 
 namespace Sklad.Api.Modules
 {
     public class HomeModule : NancyModule
     {
-        private static readonly Lazy<FileVersionInfo> infoLazy = new Lazy<FileVersionInfo>(LoadInfo);
+        private static readonly Lazy<Resp> resp = new Lazy<Resp>(Load);
 
         public HomeModule()
         {
-            Get["/"] = parameters =>
+            Get["/"] = parameters => Response.AsJson(new
             {
-                var info = infoLazy.Value;
-                return Response.AsJson(new
-                {
-                    Version = info.FileVersion,
-                    Commit = info.ProductVersion.Substring(0, 7)
-                });
-            };
+                Version = resp.Value.Item1,
+                Commit = resp.Value.Item2,
+            });
         }
 
-        private static FileVersionInfo LoadInfo()
+        private static Resp Load()
         {
             Log.Information("Loading assembly info.");
             var assembly = Assembly.GetExecutingAssembly();
-            return FileVersionInfo.GetVersionInfo(assembly.Location);
+            var info = FileVersionInfo.GetVersionInfo(assembly.Location);
+            var commit = info.ProductVersion;
+            if (commit.Length > 7)
+            {
+                commit = commit.Substring(0, 7);
+            }
+            return Tuple.Create(info.FileVersion, commit);
         }
     }
 }
