@@ -13,7 +13,7 @@ namespace Sklad.Api.Modules
 
         public HomeModule()
         {
-            Get["/"] = parameters => Response.AsJson(new
+            Get["/"] = _ => Response.AsJson(new
             {
                 Version = resp.Value.Item1,
                 Commit = resp.Value.Item2,
