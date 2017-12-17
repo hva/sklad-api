@@ -17,8 +17,8 @@ namespace Sklad.Api.Tests.Modules.Auth
             browser = new Browser(bootstrapper);
         }
 
-        [Fact]
-        public void CreateToken_WithoutParameters_ShouldFail_Test()
+        [Fact(DisplayName = "create token - without parameters - should fail")]
+        public void Test1()
         {
             var result = browser.Post("auth/tokens");
             var body = result.Body.AsString();
@@ -27,8 +27,8 @@ namespace Sklad.Api.Tests.Modules.Auth
             Assert.Contains("invalid grant type", body);
         }
 
-        [Fact]
-        public void CreateToken_WithInvalidGrantType_ShouldFail_Test()
+        [Fact(DisplayName = "create token - with invalid grant type - should fail")]
+        public void Test2()
         {
             var result = browser.Post("auth/tokens", with => with
                 .FormValue("grant_type", "invalid")

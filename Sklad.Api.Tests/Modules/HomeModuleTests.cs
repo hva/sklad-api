@@ -17,8 +17,8 @@ namespace Sklad.Api.Tests.Modules
             browser = new Browser(bootstrapper);
         }
 
-        [Fact]
-        public void ShouldSucceedTest()
+        [Fact(DisplayName = "home - should succeed")]
+        public void Test1()
         {
             var result = browser.Get("/");
             var body = result.Body.AsString();
