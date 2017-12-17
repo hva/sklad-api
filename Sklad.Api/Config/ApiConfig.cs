@@ -1,6 +1,6 @@
 ﻿using System.Runtime.Serialization;
 
-namespace Sklad.Api.Configuration
+namespace Sklad.Api.Config
 {
     [DataContract]
     public class ApiConfig

@@ -2,9 +2,9 @@
 using System.IO;
 using System.Runtime.Serialization.Json;
 
-namespace Sklad.Api.Configuration
+namespace Sklad.Api.Config
 {
-    public class ConfigLoader
+    public class Loader
     {
         public static ApiConfig Load()
         {

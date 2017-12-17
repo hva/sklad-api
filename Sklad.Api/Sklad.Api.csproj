@@ -73,8 +73,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Bootstrapper.cs" />
-    <Compile Include="Configuration\Loader.cs" />
-    <Compile Include="Configuration\ApiConfig.cs" />
+    <Compile Include="Config\Loader.cs" />
+    <Compile Include="Config\ApiConfig.cs" />
     <Compile Include="Modules\HomeModule.cs" />
     <Compile Include="NancySelfHost.cs" />
     <Compile Include="Program.cs" />

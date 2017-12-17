@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Net;
 using Serilog;
-using Sklad.Api.Configuration;
+using Sklad.Api.Config;
 using Topshelf;
 
 namespace Sklad.Api
@@ -11,7 +11,7 @@ namespace Sklad.Api
     {
         private static void Main(string[] args)
         {
-            var config = ConfigLoader.Load();
+            var config = Loader.Load();
             var ub = new UriBuilder
             {
                 Host = "localhost",
