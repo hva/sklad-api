@@ -21,10 +21,22 @@ namespace Sklad.Api.Tests.Modules.Auth
         public void CreateToken_WithoutParameters_ShouldFail_Test()
         {
             var result = browser.Post("auth/tokens");
-            //var body = result.Body.AsString();
+            var body = result.Body.AsString();
 
             Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
-            //Assert.Contains("invalid request body", body);
+            Assert.Contains("invalid grant type", body);
+        }
+
+        [Fact]
+        public void CreateToken_WithInvalidGrantType_ShouldFail_Test()
+        {
+            var result = browser.Post("auth/tokens", with => with
+                .FormValue("grant_type", "invalid")
+            );
+            var body = result.Body.AsString();
+
+            Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
+            Assert.Contains("invalid grant type", body);
         }
     }
 }

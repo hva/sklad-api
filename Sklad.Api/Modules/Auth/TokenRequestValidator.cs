@@ -6,7 +6,11 @@ namespace Sklad.Api.Modules.Auth
     {
         public TokenRequestValidator()
         {
-            RuleFor(x => x.GrantType).NotEmpty();
+            CascadeMode = CascadeMode.StopOnFirstFailure;
+
+            RuleFor(x => x.GrantType)
+                .Must(x => x == "password")
+                .WithMessage("invalid grant type");
         }
     }
 }
